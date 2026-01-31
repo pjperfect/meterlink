@@ -6,15 +6,12 @@ import SmsInput from './pages/SmsInput.jsx';
 import UsageHistory from './pages/UsageHistory.jsx';
 import Analytics from './pages/Analytics.jsx';
 
-export default function App() {
+function App(){
   return (
-    <Routes>
-      <Route element={<AppLayout />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/input" element={<SmsInput />} />
-        <Route path="/history" element={<UsageHistory />} />
-        <Route path="/analytics" element={<Analytics />} />
-      </Route>
-    </Routes>
+   <div > 
+    <Dashboard/>
+
+   </div>
   );
 }
+export default App;
