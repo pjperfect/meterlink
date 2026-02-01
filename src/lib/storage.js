@@ -1,4 +1,4 @@
-const KEY = "meterlink_records_v1";
+const KEY = 'meterlink_records_v1';
 
 export function loadRecords() {
   try {
@@ -10,16 +10,13 @@ export function loadRecords() {
 }
 
 export function addRecords(newRecords) {
-  const existing = loadRecords();
-  const merged = [...newRecords, ...existing];
+  const merged = [...newRecords, ...loadRecords()];
 
-  // newest first
   merged.sort((a, b) =>
-    (b.dateTimeISO || "").localeCompare(a.dateTimeISO || "")
+    (b.dateTimeISO || '').localeCompare(a.dateTimeISO || '')
   );
 
   localStorage.setItem(KEY, JSON.stringify(merged));
-  return merged;
 }
 
 export function clearRecords() {

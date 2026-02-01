@@ -9,7 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { loadRecords } from '../lib/storage.js';
+import useRecords from '../hooks/useRecords.js';
 
 function formatShortDate(iso) {
   if (!iso) return '—';
@@ -18,13 +18,8 @@ function formatShortDate(iso) {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-export default function Dashboard() {
-  const records = useMemo(() => {
-    const r = loadRecords();
-    return [...r].sort((a, b) =>
-      (b.dateTimeISO || '').localeCompare(a.dateTimeISO || '')
-    );
-  }, []);
+function Dashboard() {
+  const records = useRecords();
 
   const summary = useMemo(() => {
     if (!records.length) {
@@ -125,20 +120,8 @@ export default function Dashboard() {
             No chart data yet. Add messages in SMS Input.
           </div>
         ) : (
-          <div
-            style={{
-              width: '100%',
-              height: '320px',
-              minHeight: '320px',
-              minWidth: '0',
-            }}
-          >
-            <ResponsiveContainer
-              width="100%"
-              height="100%"
-              minWidth={300}
-              minHeight={320}
-            >
+          <div style={{ width: '100%', height: 320, minWidth: 0 }}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={300}>
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="date" stroke="#6b7280" fontSize={12} />
@@ -166,3 +149,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
+export default Dashboard;

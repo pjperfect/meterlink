@@ -18,7 +18,7 @@ Units: 38.5
 Amt: 1000.00
 TknAmt: 632.50`;
 
-export default function SmsInput() {
+function SmsInput() {
   const [smsText, setSmsText] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -46,10 +46,11 @@ export default function SmsInput() {
     addRecords(parsed);
     setSmsText('');
     setSuccess(
-      `Saved ${parsed.length} message(s).${invalid.length ? ` Skipped ${invalid.length}.` : ''}`
+      `Saved ${parsed.length} message(s).${
+        invalid.length ? ` Skipped ${invalid.length}.` : ''
+      }`
     );
 
-    // so Dashboard loads fresh data immediately
     navigate('/');
   };
 
@@ -149,3 +150,5 @@ TknAmt: 759.07`}
     </div>
   );
 }
+
+export default SmsInput;

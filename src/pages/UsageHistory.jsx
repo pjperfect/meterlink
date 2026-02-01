@@ -1,192 +1,119 @@
-import { useState } from 'react';
-import './UsageHistory.css';
+import { useMemo, useState } from 'react';
+import { Calendar } from 'lucide-react';
+import useRecords from '../hooks/useRecords.js';
 
-export default function UsageHistory() {
-  const [activeTimeframe, setActiveTimeframe] = useState('month');
+function withinDays(iso, days) {
+  if (!iso) return false;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return false;
+  const now = new Date();
+  const diff = (now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24);
+  return diff <= days;
+}
 
-  // Sample data for stats
-  const stats = [
-    {
-      label: 'Current Balance',
-      value: '234.5 kWh',
-      icon: '⚡',
-      change: '↑ 12%',
-      changeType: 'positive',
-      changeNote: 'vs last month',
-      backgroundColor: '#e6fffa',
-      iconColor: '#319795'
-    },
-    {
-      label: 'Monthly Usage',
-      value: '156.8 kWh',
-      icon: '📊',
-      change: '↓ 8%',
-      changeType: 'negative',
-      changeNote: 'from average',
-      backgroundColor: '#fef5e7',
-      iconColor: '#d69e2e'
-    },
-    {
-      label: 'Estimated Cost',
-      value: 'KES 3,140',
-      icon: '💰',
-      change: '↓ 5%',
-      changeType: 'positive',
-      changeNote: 'savings',
-      backgroundColor: '#fce7f3',
-      iconColor: '#d53f8c'
-    },
-    {
-      label: 'Days Remaining',
-      value: '~14 days',
-      icon: '📅',
-      change: 'Based on avg usage',
-      changeType: 'neutral',
-      backgroundColor: '#e0e7ff',
-      iconColor: '#5a67d8'
-    }
-  ];
+function UsageHistory() {
+  const [filter, setFilter] = useState('all');
+  const records = useRecords();
 
-  // Sample activity data
-  const activities = [
-    {
-      type: 'purchase',
-      title: 'Token Purchase',
-      date: 'Jan 20, 2026 • 10:34 AM',
-      amount: '+89.5 kWh',
-      icon: '⚡',
-      backgroundColor: '#e6fffa',
-      iconColor: '#319795'
-    },
-    {
-      type: 'alert',
-      title: 'High Usage Alert',
-      date: 'Jan 18, 2026 • Daily usage exceeded 15 kWh',
-      amount: '17.2 kWh',
-      amountColor: '#c53030',
-      icon: '⚠️',
-      backgroundColor: '#fed7d7',
-      iconColor: '#c53030',
-      showBadge: true
-    },
-    {
-      type: 'purchase',
-      title: 'Token Purchase',
-      date: 'Jan 15, 2026 • 3:22 PM',
-      amount: '+120.0 kWh',
-      icon: '⚡',
-      backgroundColor: '#e6fffa',
-      iconColor: '#319795'
-    },
-    {
-      type: 'purchase',
-      title: 'Token Purchase',
-      date: 'Jan 8, 2026 • 8:15 AM',
-      amount: '+95.0 kWh',
-      icon: '⚡',
-      backgroundColor: '#e6fffa',
-      iconColor: '#319795'
-    }
-  ];
+  const filtered = useMemo(() => {
+    if (filter === 'all') return records;
+    if (filter === 'week')
+      return records.filter((r) => withinDays(r.dateTimeISO, 7));
+    if (filter === 'month')
+      return records.filter((r) => withinDays(r.dateTimeISO, 30));
+    return records;
+  }, [records, filter]);
+
+  const totalUnits = useMemo(
+    () => filtered.reduce((s, r) => s + (r.units || 0), 0),
+    [filtered]
+  );
 
   return (
-    <div className="usage-history-page">
-      <div className="page-header">
-        <h1 className="page-title">Usage History 📊</h1>
-        <p className="page-subtitle">Track your electricity consumption and token purchases</p>
-      </div>
-
-      <div className="stats-grid">
-        {stats.map((stat, index) => (
-          <div key={index} className="stat-card">
-            <div className="stat-header">
-              <span className="stat-label">{stat.label}</span>
-              <div 
-                className="stat-icon" 
-                style={{ 
-                  backgroundColor: stat.backgroundColor, 
-                  color: stat.iconColor 
-                }}
-              >
-                {stat.icon}
-              </div>
-            </div>
-            <div className="stat-value">{stat.value}</div>
-            <div className={`stat-change ${stat.changeType}`}>
-              <span>{stat.change}</span>
-              {stat.changeNote && (
-                <span style={{ color: '#718096' }}>{stat.changeNote}</span>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Chart Section - Placeholder */}
-      <div className="chart-section">
-        <div className="chart-header">
-          <h2 className="chart-title">Usage Trends</h2>
-          <div className="chart-controls">
-            <button 
-              className={`chart-btn ${activeTimeframe === 'week' ? 'active' : ''}`}
-              onClick={() => setActiveTimeframe('week')}
-            >
-              Week
-            </button>
-            <button 
-              className={`chart-btn ${activeTimeframe === 'month' ? 'active' : ''}`}
-              onClick={() => setActiveTimeframe('month')}
-            >
-              Month
-            </button>
-            <button 
-              className={`chart-btn ${activeTimeframe === 'year' ? 'active' : ''}`}
-              onClick={() => setActiveTimeframe('year')}
-            >
-              Year
-            </button>
-          </div>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+            Usage History
+          </h2>
+          <p className="text-gray-600">All processed messages</p>
         </div>
-        <div className="chart-placeholder">
-          <p>Chart visualization (To be implemented)</p>
+
+        <div className="flex items-center gap-2">
+          <Calendar className="size-5 text-gray-400" />
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          >
+            <option value="all">All Time</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+          </select>
         </div>
       </div>
 
-      {/* Recent Activity Section */}
-      <div className="activity-section">
-        <h2 className="chart-title" style={{ marginBottom: '1.5rem' }}>
-          Recent Token Purchases
-        </h2>
-        
-        {activities.map((activity, index) => (
-          <div key={index} className="activity-item">
-            <div className="activity-info">
-              <div 
-                className="activity-icon" 
-                style={{ 
-                  backgroundColor: activity.backgroundColor, 
-                  color: activity.iconColor 
-                }}
-              >
-                {activity.icon}
-              </div>
-              <div className="activity-details">
-                <h4>
-                  {activity.title}
-                  {activity.showBadge && <span className="alert-badge">Alert</span>}
-                </h4>
-                <p>{activity.date}</p>
-              </div>
-            </div>
-            <div 
-              className="activity-amount" 
-              style={{ color: activity.amountColor || '#1a202c' }}
-            >
-              {activity.amount}
-            </div>
-          </div>
-        ))}
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
+                Date
+              </th>
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
+                Meter
+              </th>
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
+                Units
+              </th>
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
+                Amt
+              </th>
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
+                Token
+              </th>
+            </tr>
+          </thead>
+
+          <tbody className="divide-y divide-gray-200">
+            {filtered.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={5}
+                  className="px-6 py-10 text-center text-gray-500"
+                >
+                  No records yet. Add messages in SMS Input.
+                </td>
+              </tr>
+            ) : (
+              filtered.map((r) => (
+                <tr key={r.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {r.dateRaw}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{r.meter}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {r.units.toFixed(1)} kWh
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    KES {r.amount.toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 text-sm font-mono text-gray-600">
+                    {r.token}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="flex items-center justify-between text-sm text-gray-600">
+        <span>Showing {filtered.length} transactions</span>
+        <span>Total units: {totalUnits.toFixed(1)} kWh</span>
       </div>
     </div>
   );
 }
+
+export default UsageHistory;
